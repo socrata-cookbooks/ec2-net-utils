@@ -1,0 +1,11 @@
+EC2 Net Utils Cookbook NOTICE
+=============================
+
+Developed at Socrata (https://www.socrata.com).
+
+Contributors and copyright holders:
+
+ * Copyright 2017, Jonathan Hartman <jonathan.hartman@socrata.com>
+
+The ec2-net-utils cookbook incorporates code modified from the ec2-net-utils
+package for Amazon Linux, which is Copyright 2012 Amazon.com, Inc.
