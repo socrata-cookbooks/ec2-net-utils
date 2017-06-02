@@ -15,18 +15,19 @@
 # specific language governing permissions and limitations under the
 # License.
 
-INTERFACE="${interface}"
-PREFIX="${new_prefix}"
-. /etc/sysconfig/network-scripts/ec2net-functions
+if [ "$#" -eq 1 ]; then
+  INTERFACE="${1}"
+else
+  echo "usage: ${0##*/} <device name>"
+  exit 1
+fi
 
-ec2dhcp_config() {
-  rewrite_rules
-  # This can be done asynchronously, to save boot time
-  # since it doesn't affect the primary address
-  rewrite_aliases &
-}
+if [ $UID -ne 0 ]; then
+  echo "error: ${0##*/} must be run as root"
+  exit 1
+fi
 
-ec2dhcp_restore() {
-  remove_aliases
-  remove_rules
-}
+. <%= @network_scripts_dir %>/ec2net-functions
+
+plug_interface
+activate_primary

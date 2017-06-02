@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2012 Amazon.com, Inc. or its affiliates.
+# Copyright (C) 2013 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License").
@@ -15,22 +15,17 @@
 # specific language governing permissions and limitations under the
 # License.
 
-# During init and before the network service is started, metadata is not
-# available. Exit without attempting to configure the elastic interface.
-if [ ! -f /var/lock/subsys/network ]; then
-  exit
-fi
-if [ -f /dev/.in_sysinit ]; then
-  exit
+if [ $UID -ne 0 ]; then
+  echo "error: ${0##*/} must be run as root"
+  exit 1
 fi
 
-. /etc/sysconfig/network-scripts/ec2net-functions
-
-case $ACTION in
-  add)
-    plug_interface
-    ;;
-  remove)
-    unplug_interface
-    ;;
-esac
+logger --tag ec2net "[ec2ifscan] Scanning for unconfigured interfaces"
+for dev in $(find /sys/class/net/eth*) ; do
+  cfg="<%= @ec2ifscan_dev_path %>"
+  state=$(cat ${dev}/operstate)
+  if [ ! -e "${cfg}" ] && [ "${state}" == "down" ] ; then
+    logger --tag ec2net "[ec2ifscan] Configuring ${dev##*/}"
+    echo 'add' > ${dev}/uevent
+  fi
+done

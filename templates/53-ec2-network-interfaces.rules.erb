@@ -1,6 +1,4 @@
-#!/bin/bash
-
-# Copyright (C) 2013 Amazon.com, Inc. or its affiliates.
+# Copyright (C) 2012 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License").
@@ -15,17 +13,5 @@
 # specific language governing permissions and limitations under the
 # License.
 
-if [ $UID -ne 0 ]; then
-  echo "error: ${0##*/} must be run as root"
-  exit 1
-fi
-
-logger --tag ec2net "[ec2ifscan] Scanning for unconfigured interfaces"
-for dev in $(find /sys/class/net/eth*) ; do
-  cfg="/etc/sysconfig/network-scripts/ifcfg-${dev##*/}"
-  state=$(cat ${dev}/operstate)
-  if [ ! -e "${cfg}" ] && [ "${state}" == "down" ] ; then
-    logger --tag ec2net "[ec2ifscan] Configuring ${dev##*/}"
-    echo 'add' > ${dev}/uevent
-  fi
-done
+ACTION=="add", SUBSYSTEM=="net", KERNEL=="eth*", IMPORT{program}="/bin/sleep 1"
+SUBSYSTEM=="net", KERNEL=="eth*", RUN+="<%= @network_scripts_dir %>/ec2net.hotplug"

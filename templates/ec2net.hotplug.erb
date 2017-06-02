@@ -15,19 +15,27 @@
 # specific language governing permissions and limitations under the
 # License.
 
-if [ "$#" -eq 1 ]; then
-  INTERFACE="${1}"
-else
-  echo "usage: ${0##*/} <device name>"
-  exit 1
+# During init and before the network service is started, metadata is not
+# available. Exit without attempting to configure the elastic interface.
+# if [ ! -f /var/lock/subsys/network ]; then
+#   exit
+# fi
+# if [ -f /dev/.in_sysinit ]; then
+#   exit
+# fi
+
+# Replace Amazon's state check with something more platform-agnostic.
+if [ ! -f /sys/class/net/eth0/operstate ] || ! grep 'up' /sys/class/net/eth0/operstate; then
+  exit
 fi
 
-if [ $UID -ne 0 ]; then
-  echo "error: ${0##*/} must be run as root"
-  exit 1
-fi
+. <%= @network_scripts_dir %>/ec2net-functions
 
-. /etc/sysconfig/network-scripts/ec2net-functions
-
-plug_interface
-activate_primary
+case $ACTION in
+  add)
+    plug_interface
+    ;;
+  remove)
+    unplug_interface
+    ;;
+esac
