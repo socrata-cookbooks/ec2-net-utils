@@ -1,0 +1,24 @@
+language: ruby
+
+branches:
+  only:
+    - master
+
+sudo: required
+
+services:
+  - docker
+
+env:
+  - SUITE=default PLATFORM=ubuntu
+  - SUITE=default PLATFORM=centos
+
+install:
+  - curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -P chefdk
+  - chef exec bundle install --without=development integration
+
+before_script:
+  - cp .kitchen.travis.yml .kitchen.local.yml
+
+script:
+  - chef exec bundle exec rake && chef exec bundle exec kitchen test $SUITE-$PLATFORM-

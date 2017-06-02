@@ -1,0 +1,30 @@
+.vagrant
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Bundler
+Gemfile.lock
+bin/*
+.bundle/*
+
+# Testing
+.env.sh
+coverage
+
+# Test Kitchen
+.kitchen/
+.kitchen.local.yml
+
+# Chef
+Berksfile.lock
+berks-cookbooks
+.zero-knife.rb
+Policyfile.lock.json
