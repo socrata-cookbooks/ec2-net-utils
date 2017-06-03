@@ -34,6 +34,7 @@ Recipes
 
 ***default***
 
+Installs all the ec2-net-utils scripts.
 
 Attributes
 ==========
@@ -45,25 +46,25 @@ Resources
 
 ***ec2_net_utils***
 
-TODO
+Manages assorted the ec2-net-utils scripts.
 
 Syntax:
 
-    ec2_net_utils do
+    ec2_net_utils 'default' do
       action :install
     end
 
 Actions:
 
-| Action     | Description   |
-|------------|---------------|
-| `:install` | Do some stuff |
+| Action     | Description             |
+|------------|-------------------------|
+| `:install` | Install all the scripts |
 
 Properties:
 
-| Property    | Default   | Description                           |
-|-------------|-----------|---------------------------------------|
-| action      | `:create` | Action(s) to perform                  |
+| Property    | Default    | Description                           |
+|-------------|------------|---------------------------------------|
+| action      | `:install` | Action(s) to perform                  |
 
 Contributing
 ============
