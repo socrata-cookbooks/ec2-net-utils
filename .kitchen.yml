@@ -1,13 +1,12 @@
 ---
 driver:
   name: ec2
-  shared_credentials_profile: staging
-  region: us-west-2
-  aws_ssh_key_id: shared-bootstrap
-  subnet_id: subnet-c174d9b6
+  region: <%= ENV['AWS_REGION'] %>
+  aws_ssh_key_id: <%= ENV['AWS_SSH_KEY_ID'] %>
+  subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
 
 transport:
-  ssh_key: ~/.ssh/aws_bootstrap
+  ssh_key: <%= ENV['AWS_SSH_KEY_FILE'] %>
 
 provisioner:
   name: chef_zero

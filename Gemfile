@@ -12,6 +12,7 @@ group :development do
 end
 
 group :test do
+  gem 'aws-sdk'
   gem 'chefspec'
   gem 'coveralls'
   gem 'fauxhai'
