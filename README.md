@@ -66,6 +66,10 @@ Properties:
 |-------------|------------|---------------------------------------|
 | action      | `:install` | Action(s) to perform                  |
 
+Additional Reading
+==================
+- [Hotplug AWS Network Interfaces](https://williamsbdev.com/posts/hotplug-aws-network-interfaces)
+
 Contributing
 ============
 
