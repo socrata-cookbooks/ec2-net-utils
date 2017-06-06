@@ -37,7 +37,7 @@ class EC2NetUtilsHelpers
           description: description,
           groups: eth0.groups.map(&:group_id),
           subnet_id: eth0.subnet_id
-        ).network_interface
+        )
         tag!
         puts "Created secondary ENI (#{interface.id})"
       end
@@ -59,7 +59,7 @@ class EC2NetUtilsHelpers
         e = interface
         print "Deleting ENI (#{e.id})..."
         e.delete
-        # There is ~a second or where the API can still find the ENI even
+        # There is ~a second or so where the API can still find the ENI even
         # though it's "deleted".
         sleep(3)
         puts 'OK'
@@ -115,8 +115,7 @@ class EC2NetUtilsHelpers
         print 'Waiting for instance to bring up ENI as eth1...'
         Timeout.timeout(20) do
           Kernel.loop do
-            break if command('ethtool eth1').exit_status.zero?
-            print('.')
+            up? ? break : print('.')
             sleep(3)
           end
         end
@@ -176,9 +175,8 @@ class EC2NetUtilsHelpers
 
         return if nics.empty?
         raise('Something went wildly wrong') unless nics.length == 1
-        Aws::EC2::NetworkInterface.new(
-          nics[0].network_interface_id, client: ec2
-        )
+        Aws::EC2::NetworkInterface.new(nics[0].network_interface_id,
+                                       client: ec2)
       end
 
       #
