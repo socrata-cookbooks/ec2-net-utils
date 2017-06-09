@@ -66,6 +66,16 @@ class EC2NetUtilsHelpers
         end
       end
 
+      #
+      # Fetch and cache the ID of the EC2 instance under test by using Inspec
+      # to run the `ec2metadata` command on the instance.
+      #
+      # @return [String] the instance ID
+      #
+      def id
+        @id ||= Inspec.command('ec2metadata --instance-id').stdout.strip
+      end
+
       private
 
       #
@@ -76,16 +86,6 @@ class EC2NetUtilsHelpers
       #
       def instance
         @instance ||= EC2.find_instance(id)
-      end
-
-      #
-      # Fetch and cache the ID of the EC2 instance under test by using Inspec
-      # to run the `ec2metadata` command on the instance.
-      #
-      # @return [String] the instance ID
-      #
-      def id
-        @id ||= Inspec.command('ec2metadata --instance-id').stdout.strip
       end
     end
   end
