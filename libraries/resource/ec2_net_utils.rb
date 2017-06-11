@@ -61,8 +61,9 @@ class Chef
           variables(ec2ifscan_dev_path: ec2ifscan_dev_path)
         end
 
-        template ::File.join(dhclient_scripts_dir, 'ec2dhcp.sh') do
+        template ec2dhcp_script_path do
           cookbook 'ec2-net-utils'
+          source 'ec2dhcp.sh.erb'
           mode '0755'
           variables(network_scripts_dir: network_scripts_dir,
                     dhclient_scripts_dir: dhclient_scripts_dir)

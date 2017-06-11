@@ -89,6 +89,13 @@ class Chef
         end
 
         #
+        # On Debian systems, DHCP helper scripts must *not* end in .sh.
+        #
+        def ec2dhcp_script_path
+          ::File.join(dhclient_scripts_dir, 'ec2dhcp')
+        end
+
+        #
         # Debian's dhclient doesn't support dhclient.d.
         #
         def dhclient_scripts_dir

@@ -23,6 +23,13 @@ describe command('ip route show table 10001') do
   end
 end
 
+describe command('ip rule show') do
+  it 'has a rule mapping the eth1 IP to the new route table' do
+    r = /^32765:\tfrom [0-9]+(\.[0-9]+){3} lookup 10001 $/
+    expect(subject.stdout).to match(r)
+  end
+end
+
 describe command('curl --interface eth1 --connect-timeout 3 ' \
                  'https://www.google.com') do
   it 'indicates a successful route out of eth1' do
