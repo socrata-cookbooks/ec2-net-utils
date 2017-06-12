@@ -130,7 +130,7 @@ class EC2NetUtilsHelpers
       # easily in the EC2 API.
       #
       def name
-        "kitchen-#{Instance.id}-eth1"
+        "ec2-net-utils-kitchen-#{Instance.id}-eth1"
       end
 
       #
@@ -138,7 +138,7 @@ class EC2NetUtilsHelpers
       # find it easily in the EC2 API.
       #
       def description
-        "Test Kitchen Secondary ENI for #{Instance.id}"
+        "Test Kitchen ec2-net-utils secondary ENI for #{Instance.id}"
       end
     end
   end
