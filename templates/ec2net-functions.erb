@@ -1,4 +1,4 @@
-# -*-Shell-script-*-
+#!/bin/sh
 
 # Copyright (C) 2012 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
@@ -33,8 +33,7 @@ fi
 export HWADDR
 
 # generate a routing table number
-RTABLE=${INTERFACE#eth}
-let RTABLE+=10000
+RTABLE=$((${INTERFACE#eth} + 10000))
 
 metadata_base="http://169.254.169.254/latest/meta-data/network/interfaces/macs"
 config_file="<%= @dev_config_path %>"
@@ -45,7 +44,7 @@ dhclient_file="<%= @dev_dhclient_path %>"
 # make no changes to unmanaged interfaces
 if [ -s ${config_file} ]; then
   unmanaged=$(LANG=C grep -l "^[[:space:]]*EC2SYNC=no\([[:space:]#]\|$\)" $config_file)
-  if [ "${config_file}" == "${unmanaged}" ]; then
+  if [ "${config_file}" = "${unmanaged}" ]; then
     logger --tag ec2net "Not managing ${INTERFACE}"
     exit
   fi
@@ -62,7 +61,7 @@ get_meta() {
     logger --tag ec2net "[get_meta] Trying to get ${metadata_base}/${HWADDR}/${1}"
     meta=$(curl -s -f ${metadata_base}/${HWADDR}/${1})
     if [ "${?}" -gt 0 ]; then
-      let attempts--
+      attempts=$(($attempts - 1))
       sleep 0.5
       false
     fi
@@ -81,19 +80,17 @@ get_ipv4s() {
 }
 
 get_primary_ipv4() {
-  ipv4s=($(get_ipv4s))
-  echo "${ipv4s[0]}"
+  printf '%s ' $(get_ipv4s) | cut -d ' ' -f 1
 }
 
 get_secondary_ipv4s() {
-  ipv4s=($(get_ipv4s))
-  echo "${ipv4s[@]:1}"
+  printf '%s ' $(get_ipv4s) | cut -d ' ' -f 2-
 }
 
 get_ipv6s() {
   /sbin/ip -6 addr list dev ${INTERFACE} scope global \
       | grep "inet6" \
-      | awk '{print $2}' | cut -d/ -f1
+      | awk '{print $2}' | cut -d / -f 1
 }
 
 get_ipv6_gateway() {
@@ -107,7 +104,13 @@ get_ipv6_gateway() {
 
   if echo "$new_dhcp6_server_id" | grep -q "^0:3:0:1:"; then
     logger --tag ec2net "[get_ipv6_gateway] Using DHCP6 environment variable"
-    octets=($(echo "$new_dhcp6_server_id" | rev | cut -d : -f -6 | rev | tr : ' '))
+    octets=$(echo "$new_dhcp6_server_id" | rev | cut -d : -f -6 | rev | tr : ' ')
+    octet0=$(echo $octets | cut -d ' ' -f 1)
+    octet1=$(echo $octets | cut -d ' ' -f 2)
+    octet2=$(echo $octets | cut -d ' ' -f 3)
+    octet3=$(echo $octets | cut -d ' ' -f 4)
+    octet4=$(echo $octets | cut -d ' ' -f 5)
+    octet5=$(echo $octets | cut -d ' ' -f 6)
 
     # The gateway's link local address is derived from the
     # hardware address by converting the MAC-48 to an EUI-64:
@@ -119,12 +122,12 @@ get_ipv6_gateway() {
     # The EUI-64 is used as the last 64 bits in an fe80::/64
     # address, so fe80::200:5eff:fe00:5335.
 
-    declare -A quibbles # quad nibbles
-    quibbles[0]=$(( ((0x${octets[0]} ^ 2) << 8) + 0x${octets[1]} ))
-    quibbles[1]=$(( 0x${octets[2]}ff ))
-    quibbles[2]=$(( 0xfe00 + 0x${octets[3]} ))
-    quibbles[3]=$(( (0x${octets[4]} << 8) + 0x${octets[5]} ))
-    printf "fe80::%04x:%04x:%04x:%04x\n" ${quibbles[@]}
+    quibble0=$(( ((0x${octet0} ^ 2) << 8) + 0x${octet1} ))
+    quibble1=$(( 0x${octet2}ff ))
+    quibble2=$(( 0xfe00 + 0x${octet3} ))
+    quibble3=$(( (0x${octet4} << 8) + 0x${octet5} ))
+
+    printf "fe80::%04x:%04x:%04x:%04x\n" ${quibble0} ${quibble1} ${quibble2} ${quibble3}
   else
     logger --tag ec2net "[get_ipv6_gateway] Waiting for IPv6 router advertisement"
     attempts=20
@@ -137,7 +140,7 @@ get_ipv6_gateway() {
       if [ -n "${gateway6}" ]; then
         break
       else
-        let attempts--
+        attempts=$(($attempts - 1))
         sleep 0.5
       fi
     done
@@ -146,7 +149,7 @@ get_ipv6_gateway() {
 }
 
 remove_primary() {
-  if [ "${INTERFACE}" == "eth0" ]; then
+  if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
   logger --tag ec2net "[remove_primary] Removing configs for ${INTERFACE}"
@@ -157,7 +160,7 @@ remove_primary() {
 }
 
 rewrite_primary() {
-  if [ "${INTERFACE}" == "eth0" ]; then
+  if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
   logger --tag ec2net "[rewrite_primary] Rewriting configs for ${INTERFACE}"
@@ -207,7 +210,7 @@ remove_aliases() {
 
 rewrite_aliases() {
   aliases=$(get_secondary_ipv4s)
-  if [ ${#aliases[*]} -eq 0 ]; then
+  if [ ${#aliases} -eq 0 ]; then
     remove_aliases
     return
   fi
@@ -225,26 +228,28 @@ rewrite_aliases() {
   # from metadata, cross it off the stale list if present, or
   # add it to the interface otherwise. Then, remove any address
   # remaining in the stale list.
-  declare -A secondaries
-  for secondary in $(/sbin/ip -4 addr list dev ${INTERFACE} secondary \
-                     |grep "inet .* secondary ${INTERFACE}" \
-                     |awk '{print $2}'|cut -d/ -f1); do
-    secondaries[${secondary}]=1
-  done
+  secondaries=$(/sbin/ip -4 addr list dev ${INTERFACE} secondary \
+                | grep "inet .* secondary ${INTERFACE}" \
+                | awk '{print $2}' | cut -d / -f1 )
   for alias in ${aliases}; do
-    if [[ ${secondaries[${alias}]} ]]; then
-      unset secondaries[${alias}]
-    else
+    found="false"
+    for secondary in ${secondaries}; do
+      if [ "${secondary}" = "${alias}" ]; then
+        found="true"
+        secondaries=$(echo "${secondaries}" | sed "/^${alias}$/d")
+      fi
+    done
+    if [ "${found}" != "true" ]; then
       /sbin/ip -4 addr add ${alias}/${PREFIX} brd + dev ${INTERFACE}
     fi
   done
-  for secondary in "${!secondaries[@]}"; do
+  for secondary in ${secondaries}; do
     /sbin/ip -4 addr del ${secondary}/${PREFIX} dev ${INTERFACE}
   done
 }
 
 remove_rules() {
-  if [ "${INTERFACE}" == "eth0" ]; then
+  if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
   logger --tag ec2net "[remove_rules] Removing rules for ${INTERFACE}"
@@ -261,18 +266,18 @@ remove_rules() {
 }
 
 rewrite_rules() {
-  if [ "${INTERFACE}" == "eth0" ]; then
+  if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
-  ips=($(get_ipv4s))
-  ip6s=($(get_ipv6s))
-  if [ ${#ips[*]} -eq 0 ]; then
+  ips=$(get_ipv4s)
+  ip6s=$(get_ipv6s)
+  if [ "${#ips}" -eq 0 ]; then
     remove_rules
     return
   fi
   # This is the part we would do in rewrite_primary() if we knew
   # the gateway address.
-  if [ ${#ip6s[*]} -gt 0 -a -z "$(/sbin/ip -6 route show table ${RTABLE})" ]; then
+  if [ -n "${ip6s}" -a -z "$(/sbin/ip -6 route show table ${RTABLE})" ]; then
     gateway6=$(get_ipv6_gateway)
     # Manually add the route, then add it to ${route6_file} so it
     # gets brought down with the rest of the interface.
@@ -290,40 +295,55 @@ EOF
   # off the stale list if present. Otherwise, add a rule sending
   # outbound traffic from that IP to the interface route table.
   # Then, remove all other rules found in the stale list.
-  declare -A rules
-  for rule in $(/sbin/ip -4 rule list \
-                |grep "from .* lookup ${RTABLE}" \
-                |awk '{print $1$3}'); do
-    split=(${rule//:/ })
-    rules[${split[1]}]=${split[0]}
-  done
-  for ip in ${ips[@]}; do
-    if [[ ${rules[${ip}]} ]]; then
-      unset rules[${ip}]
-    else
+  rules=$(/sbin/ip -4 rule list \
+          | tac \
+          | grep "from .* lookup ${RTABLE}" \
+          | awk '{print $1$3}')
+
+  for ip in ${ips}; do
+    found="false"
+    for rule in ${rules}; do
+      if [ $(echo $rule | cut -d ':' -f 2) = $ip ]; then
+        if [ "${found}" != "true" ]; then
+          found="true"
+          rules=$(echo "${rules}" | sed "/^${rule}$/d")
+        fi
+      fi
+    done
+    if [ "${found}" = "false" ]; then
       /sbin/ip -4 rule add from ${ip} lookup ${RTABLE}
     fi
   done
-  for rule in "${!rules[@]}"; do
-    /sbin/ip -4 rule delete pref "${rules[${rule}]}"
+
+  for rule in ${rules}; do
+    pref=$(echo $rule | cut -d ':' -f 1)
+    /sbin/ip -4 rule delete pref ${pref}
   done
+
   # Now do the same, but for IPv6
-  declare -A rules6
-  for rule in $(/sbin/ip -6 rule list \
-                |grep "from .* lookup ${RTABLE}" \
-                |awk '{print $1$3}'); do
-    split=(${rule/:/ }) # take care to only replace the first :
-    rules6[${split[1]}]=${split[0]}
-  done
-  for ip in ${ip6s[@]}; do
-    if [[ ${rules6[${ip}]} ]]; then
-      unset rules6[${ip}]
-    else
+  rule6s=$(/sbin/ip -6 rule list \
+           | tac \
+           | grep "from .* lookup ${RTABLE}" \
+           | awk '{print $1$3}')
+
+  for ip in ${ip6s}; do
+    found="false"
+    for rule in ${rule6s}; do
+      if [ $(echo $rule | cut -d ':' -f 2) = $ip ]; then
+        if [ "${found}" != "true" ]; then
+          found="true"
+          rule6s=$(echo "${rule6s}" | sed "/^${rule}$/d")
+        fi
+      fi
+    done
+    if [ "${found}" = "false" ]; then
       /sbin/ip -6 rule add from ${ip} lookup ${RTABLE}
     fi
   done
-  for rule in "${!rules6[@]}"; do
-    /sbin/ip -6 rule delete pref "${rules6[${rule}]}"
+
+  for rule in ${rule6s}; do
+    pref=$(echo $rule | cut -d ':' -f 1)
+    /sbin/ip -6 rule delete pref ${pref}
   done
 }
 
