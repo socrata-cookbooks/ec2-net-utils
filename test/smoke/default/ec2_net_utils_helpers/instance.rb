@@ -14,7 +14,8 @@ class EC2NetUtilsHelpers
       # actually have to run `ifup`.
       #
       # It takes several seconds after the ENI is attached before the instance
-      # recognizes it and brings it up.
+      # recognizes it and brings it up. There are then a few more seconds
+      # between the interface coming up and getting its IP(s) into place.
       #
       # @param nic [String] the eth* name of the interface to bring up
       #
@@ -28,6 +29,7 @@ class EC2NetUtilsHelpers
             sleep(3)
           end
         end
+        sleep(5)
         puts 'OK'
       end
 
