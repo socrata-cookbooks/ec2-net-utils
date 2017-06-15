@@ -75,7 +75,10 @@ class EC2NetUtilsHelpers
       # @return [String] the instance ID
       #
       def id
-        @id ||= Inspec.command('ec2metadata --instance-id').stdout.strip
+        @id ||= begin
+          url = 'http://169.254.169.254/latest/meta-data/instance-id'
+          Inspec.command("curl #{url}").stdout.strip
+        end
       end
 
       private
