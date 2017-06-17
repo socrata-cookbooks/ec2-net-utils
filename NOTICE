@@ -9,3 +9,7 @@ Contributors and copyright holders:
 
 The ec2-net-utils cookbook incorporates code modified from the ec2-net-utils
 package for Amazon Linux, which is Copyright 2012 Amazon.com, Inc.
+
+The ec2-net-utils cookbook incorporates code modified from udev, which is
+Copyright (C) 2006 Marco d'Itri <md@Linux.IT> and Copyright (C) 2007 Kay
+Sievers <kay.sievers@vrfy.org>. 

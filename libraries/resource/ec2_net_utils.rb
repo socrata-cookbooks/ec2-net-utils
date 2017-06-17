@@ -34,8 +34,15 @@ class Chef
       # Drop off the files in the correct locations.
       #
       action :install do
+        package 'udev'
         # TODO: Will this harm anything if the driver isn't installed?
         cookbook_file '/etc/modprobe.d/ixgbevf.conf'
+        %w(rule_generator.functions write_net_rules).each do |f|
+          cookbook_file ::File.join('/lib/udev', f) do
+            cookbook 'ec2-net-utils'
+            mode '0755'
+          end
+        end
 
         template ::File.join(network_scripts_dir, 'ec2net-functions') do
           cookbook 'ec2-net-utils'

@@ -32,9 +32,23 @@ shared_context 'resources::ec2_net_utils' do
           expect(chef_run).to install_ec2_net_utils(name)
         end
 
+        it 'ensures the udev package is installed' do
+          expect(chef_run).to install_package('udev')
+        end
+
         it 'creates the ixgbevf modprobe config' do
           f = '/etc/modprobe.d/ixgbevf.conf'
           expect(chef_run).to create_cookbook_file(f)
+        end
+
+        it 'creates the rule_generator.functions file' do
+          f = '/lib/udev/rule_generator.functions'
+          expect(chef_run).to create_file(f).with(mode: '0755')
+        end
+
+        it 'creates the write_net_rules file' do
+          f = '/lib/udev/write_net_rules'
+          expect(chef_run).to create_file(f).with(mode: '0755')
         end
 
         it 'creates the ec2net-functions file' do

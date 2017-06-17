@@ -24,3 +24,12 @@ describe file('/etc/dhcp/dhclient.conf') do
     expect(subject.content).to match(r)
   end
 end
+
+describe file('/etc/udev/rules.d/70-persistent-net.rules') do
+  it 'contains a rule for eth1' do
+    r = Regexp.new('^SUBSYSTEM=="net", ACTION=="add", DRIVERS=="\\?\\*", ' \
+                   "ATTR\\{address\\}==\"[0-9a-f](:[0-9a-f]){5}\", " \
+                   'KERNEL=="eth\\*", NAME="eth1"$')
+    expect(subject.content).to match(r)
+  end
+end
