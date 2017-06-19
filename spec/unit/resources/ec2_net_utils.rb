@@ -36,6 +36,10 @@ shared_context 'resources::ec2_net_utils' do
           expect(chef_run).to install_package('udev')
         end
 
+        it 'ensures the curl package is installed' do
+          expect(chef_run).to install_package('curl')
+        end
+
         it 'creates the ixgbevf modprobe config' do
           f = '/etc/modprobe.d/ixgbevf.conf'
           expect(chef_run).to create_cookbook_file(f)

@@ -35,6 +35,7 @@ class Chef
       #
       action :install do
         package 'udev'
+        package 'curl'
         # TODO: Will this harm anything if the driver isn't installed?
         cookbook_file '/etc/modprobe.d/ixgbevf.conf'
         %w(rule_generator.functions write_net_rules).each do |f|
