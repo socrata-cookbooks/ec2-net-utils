@@ -47,12 +47,12 @@ shared_context 'resources::ec2_net_utils' do
 
         it 'creates the rule_generator.functions file' do
           f = '/lib/udev/rule_generator.functions'
-          expect(chef_run).to create_file(f).with(mode: '0755')
+          expect(chef_run).to create_cookbook_file(f).with(mode: '0755')
         end
 
         it 'creates the write_net_rules file' do
           f = '/lib/udev/write_net_rules'
-          expect(chef_run).to create_file(f).with(mode: '0755')
+          expect(chef_run).to create_cookbook_file(f).with(mode: '0755')
         end
 
         it 'creates the ec2net-functions file' do
@@ -101,8 +101,7 @@ shared_context 'resources::ec2_net_utils' do
         end
 
         it 'renders the expected ec2ifscan file' do
-          r = Regexp.new("^  cfg=\"#{Regexp.escape(network_scripts_dir)}/" \
-                         'interfaces\\.d/\\${dev##\\*\/}\\.cfg"$')
+          r = Regexp.new("^  cfg=\"#{Regexp.escape(ec2ifscan_dev_path)}\"$")
           expect(chef_run).to render_file('/sbin/ec2ifscan')
             .with_content(r)
         end

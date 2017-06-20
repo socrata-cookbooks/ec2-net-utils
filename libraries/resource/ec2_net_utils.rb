@@ -82,7 +82,8 @@ class Chef
 
         template '/etc/udev/rules.d/53-ec2-network-interfaces.rules' do
           cookbook 'ec2-net-utils'
-          variables(network_scripts_dir: network_scripts_dir)
+          variables(network_scripts_dir: network_scripts_dir,
+                    hotplug_support: hotplug_support)
         end
 
         cookbook_file '/etc/udev/rules.d/75-persistent-net-generator.rules' do

@@ -15,3 +15,7 @@
 
 ACTION=="add", SUBSYSTEM=="net", KERNEL=="eth*", IMPORT{program}="/bin/sleep 1"
 SUBSYSTEM=="net", KERNEL=="eth*", RUN+="<%= @network_scripts_dir %>/ec2net.hotplug"
+<% unless @hotplug_support %>
+ACTION=="add", SUBSYSTEM=="net", KERNEL=="eth*", RUN+="/sbin/ec2ifup $env{INTERFACE}"
+ACTION=="remove", SUBSYSTEM=="net", KERNEL=="eth*", RUN+="/sbin/ec2ifdown $env{INTERFACE}"
+<% end %>

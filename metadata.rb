@@ -12,3 +12,8 @@ chef_version '>= 12.1'
 
 source_url 'https://github.com/socrata-cookbooks/ec2-net-utils'
 issues_url 'https://github.com/socrata-cookbooks/ec2-net-utils/issues'
+
+supports 'ubuntu', '>= 14.04'
+supports 'redhat', '>= 7'
+supports 'centos', '>= 7'
+supports 'scientific', '>= 7'

@@ -33,6 +33,13 @@ class Chef
         provides :ec2_net_utils, platform_family: 'debian'
 
         #
+        # Debian systems support network device hotplugging.
+        #
+        def hotplug_support
+          true
+        end
+
+        #
         # Debian configs also use their pre- and post- scripts to manage their
         # route and dhclient configs.
         #
@@ -57,7 +64,7 @@ class Chef
         # Debian network configs go in interfaces.d.
         #
         def dev_config_path
-          '/etc/network/interfaces.d/${INTERFACE}.cfg'
+          '#{dev_config_dir}/${INTERFACE}.cfg'
         end
 
         #
@@ -85,7 +92,7 @@ class Chef
         # Debian network device configs live in the interfaces.d dir.
         #
         def ec2ifscan_dev_path
-          "#{network_scripts_dir}/interfaces.d/${dev##*/}.cfg"
+          "#{dev_config_dir}/${dev##*/}.cfg"
         end
 
         #
@@ -107,6 +114,13 @@ class Chef
         #
         def network_scripts_dir
           '/etc/network'
+        end
+
+        #
+        # Debian has an interfaces.d dir for device configs.
+        #
+        def dev_config_dir
+          ::File.join(network_scripts_dir, 'interfaces.d')
         end
       end
     end
