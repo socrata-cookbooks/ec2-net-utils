@@ -36,11 +36,11 @@ ec2dhcp_restore() {
 # their own, but ones where we have to use exit hooks need some extra help.
 if [ "$reason" = "RELEASE" ]; then
   ec2dhcp_restore
-  logger --tag ec2net "[ec2dhcp] Released interface $INTERFACE: $?"
+  logger -t ec2net "[ec2dhcp] Released interface $INTERFACE: $?"
 elif [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ] || [ "$reason" = "RENEW" ] || [ "$reason" = "REBIND" ] ; then
   ec2dhcp_config
-  logger --tag ec2net "[ec2dhcp] Configured interface $INTERFACE: $?"
+  logger -t ec2net "[ec2dhcp] Configured interface $INTERFACE: $?"
 else
-  logger --tag ec2net "[ec2dhcp] No action for interface $INTERFACE on reason $reason"
+  logger -t ec2net "[ec2dhcp] No action for interface $INTERFACE on reason $reason"
 fi
 <% end %>

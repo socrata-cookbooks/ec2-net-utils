@@ -45,7 +45,7 @@ dhclient_file="<%= @dev_dhclient_path %>"
 if [ -s ${config_file} ]; then
   unmanaged=$(LANG=C grep -l "^[[:space:]]*EC2SYNC=no\([[:space:]#]\|$\)" $config_file)
   if [ "${config_file}" = "${unmanaged}" ]; then
-    logger --tag ec2net "Not managing ${INTERFACE}"
+    logger -t ec2net "Not managing ${INTERFACE}"
     exit
   fi
 fi
@@ -55,10 +55,10 @@ get_meta() {
   false
   while [ "${?}" -gt 0 ]; do
     if [ "${attempts}" -eq 0 ]; then
-      logger --tag ec2net "[get_meta] Failed to get ${metadata_base}/${HWADDR}/${1}"
+      logger -t ec2net "[get_meta] Failed to get ${metadata_base}/${HWADDR}/${1}"
       return
     fi
-    logger --tag ec2net "[get_meta] Trying to get ${metadata_base}/${HWADDR}/${1}"
+    logger -t ec2net "[get_meta] Trying to get ${metadata_base}/${HWADDR}/${1}"
     meta=$(curl -s -f ${metadata_base}/${HWADDR}/${1})
     if [ "${?}" -gt 0 ]; then
       attempts=$(($attempts - 1))
@@ -103,7 +103,7 @@ get_ipv6_gateway() {
   # up to 10 seconds for an RA route to be added by the kernel.
 
   if echo "$new_dhcp6_server_id" | grep -q "^0:3:0:1:"; then
-    logger --tag ec2net "[get_ipv6_gateway] Using DHCP6 environment variable"
+    logger -t ec2net "[get_ipv6_gateway] Using DHCP6 environment variable"
     octets=$(echo "$new_dhcp6_server_id" | rev | cut -d : -f -6 | rev | tr : ' ')
     octet0=$(echo $octets | cut -d ' ' -f 1)
     octet1=$(echo $octets | cut -d ' ' -f 2)
@@ -129,11 +129,11 @@ get_ipv6_gateway() {
 
     printf "fe80::%04x:%04x:%04x:%04x\n" ${quibble0} ${quibble1} ${quibble2} ${quibble3}
   else
-    logger --tag ec2net "[get_ipv6_gateway] Waiting for IPv6 router advertisement"
+    logger -t ec2net "[get_ipv6_gateway] Waiting for IPv6 router advertisement"
     attempts=20
     while true; do
       if [ "${attempts}" -eq 0 ]; then
-        logger --tag ec2net "[get_ipv6_gateway] Failed to receive router advertisement"
+        logger -t ec2net "[get_ipv6_gateway] Failed to receive router advertisement"
         return
       fi
       gateway6=$(/sbin/ip -6 route show dev "${INTERFACE}" | grep ^default | awk '{print $3}')
@@ -152,7 +152,7 @@ remove_primary() {
   if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
-  logger --tag ec2net "[remove_primary] Removing configs for ${INTERFACE}"
+  logger -t ec2net "[remove_primary] Removing configs for ${INTERFACE}"
   rm -f ${config_file}
   if [ -n "$route_file" ]; then rm -f ${route_file}; fi
   if [ -n "$route6_file" ]; then rm -f ${route6_file}; fi
@@ -163,7 +163,7 @@ rewrite_primary() {
   if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
-  logger --tag ec2net "[rewrite_primary] Rewriting configs for ${INTERFACE}"
+  logger -t ec2net "[rewrite_primary] Rewriting configs for ${INTERFACE}"
   cidr=$(get_cidr)
   if [ -z ${cidr} ]; then
     return
@@ -204,7 +204,7 @@ EOF
 }
 
 remove_aliases() {
-  logger --tag ec2net "[remove_aliases] Removing aliases of ${INTERFACE}"
+  logger -t ec2net "[remove_aliases] Removing aliases of ${INTERFACE}"
   /sbin/ip -4 addr flush dev ${INTERFACE} secondary
 }
 
@@ -214,7 +214,7 @@ rewrite_aliases() {
     remove_aliases
     return
   fi
-  logger --tag ec2net "[rewrite_aliases] Rewriting aliases of ${INTERFACE}"
+  logger -t ec2net "[rewrite_aliases] Rewriting aliases of ${INTERFACE}"
   # The network prefix can be provided in the environment by
   # e.g. DHCP, but if it's not available then we need it to
   # correctly configure secondary addresses.
@@ -252,7 +252,7 @@ remove_rules() {
   if [ "${INTERFACE}" = "eth0" ]; then
     return
   fi
-  logger --tag ec2net "[remove_rules] Removing rules for ${INTERFACE}"
+  logger -t ec2net "[remove_rules] Removing rules for ${INTERFACE}"
   for rule in $(/sbin/ip -4 rule list \
                 |grep "from .* lookup ${RTABLE}" \
                 |awk -F: '{print $1}'); do
@@ -288,7 +288,7 @@ rewrite_rules() {
 EOF
     fi
   fi
-  logger --tag ec2net "[rewrite_rules] Rewriting rules for ${INTERFACE}"
+  logger -t ec2net "[rewrite_rules] Rewriting rules for ${INTERFACE}"
   # Retrieve a list of IP rules for the route table that belongs
   # to this interface. Treat this as the stale list. For each IP
   # address obtained from metadata, cross the corresponding rule
@@ -348,23 +348,23 @@ EOF
 }
 
 plug_interface() {
-  logger --tag ec2net "[plug_interface] ${INTERFACE} plugged"
+  logger -t ec2net "[plug_interface] ${INTERFACE} plugged"
   rewrite_primary
 }
 
 unplug_interface() {
-  logger --tag ec2net "[unplug_interface] ${INTERFACE} unplugged"
+  logger -t ec2net "[unplug_interface] ${INTERFACE} unplugged"
   remove_rules
   remove_aliases
   remove_primary
 }
 
 activate_primary() {
-  logger --tag ec2net "[activate_primary] Activating ${INTERFACE}"
+  logger -t ec2net "[activate_primary] Activating ${INTERFACE}"
   /sbin/ifup ${INTERFACE}
 }
 
 deactivate_primary() {
-  logger --tag ec2net "[deactivate_primary] Deactivating ${INTERFACE}"
+  logger -t ec2net "[deactivate_primary] Deactivating ${INTERFACE}"
   /sbin/ifdown ${INTERFACE}
 }
