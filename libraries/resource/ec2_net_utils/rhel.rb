@@ -30,15 +30,13 @@ class Chef
       # @author Jonathan Hartman <jonathan.hartman@socrata.com>
       class Rhel < Ec2NetUtils
         resource_name :ec2_net_utils_rhel
-        provides :ec2_net_utils,
-                 platform_family: 'rhel',
-                 platform_version: '>= 7'
+        provides :ec2_net_utils, platform_family: 'rhel'
 
         #
         # RHEL7 has disabled network device hotplugging.
         #
         def hotplug_support
-          false
+          node['platform_version'].to_i < 7
         end
 
         #
