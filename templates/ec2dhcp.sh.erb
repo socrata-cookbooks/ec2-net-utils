@@ -31,7 +31,7 @@ ec2dhcp_restore() {
   remove_rules
 }
 
-<% if @dhclient_scripts_dir == '/etc/dhcp/dhclient-exit-hooks.d' %>
+<% if @exit_hooks %>
 # Platforms that support dhclient.d scripts will call the above methods on
 # their own, but ones where we have to use exit hooks need some extra help.
 if [ "$reason" = "RELEASE" ]; then

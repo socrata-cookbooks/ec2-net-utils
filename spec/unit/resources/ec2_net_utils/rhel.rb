@@ -31,7 +31,7 @@ shared_context 'resources::ec2_net_utils::rhel' do
       EC2SYNC=yes
     EOH
   end
-  let(:dhclient_scripts_dir) { '/etc/dhcp/dhclient.d' }
+  let(:ec2dhcp_script_path) { '/etc/dhcp/dhclient.d/ec2dhcp.sh' }
   let(:ec2ifscan_dev_path) { '/etc/sysconfig/network-scripts/ifcfg-${dev##*/}' }
 
   shared_examples_for 'any RHEL platform' do
@@ -43,22 +43,21 @@ shared_context 'resources::ec2_net_utils::rhel' do
       context 'all default properties' do
         include_context description
 
-        it 'does not add Debian hooks into the ec2dhcp.sh file' do
-          f = "#{dhclient_scripts_dir}/ec2dhcp.sh"
+        it 'does not add Debian hooks into the ec2dhcp file' do
           c = <<-EOH.gsub(/^ {12}/, '').strip
             # Platforms that support dhclient.d scripts will call the above methods on
             # their own, but ones where we have to use exit hooks need some extra help.
             if [ "$reason" = "RELEASE" ]; then
               ec2dhcp_restore
-              logger --tag ec2net "[ec2dhcp] Released interface $INTERFACE: $?"
+              logger -t ec2net "[ec2dhcp] Released interface $INTERFACE: $?"
             elif [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ] || [ "$reason" = "RENEW" ] || [ "$reason" = "REBIND" ] ; then
               ec2dhcp_config
-              logger --tag ec2net "[ec2dhcp] Configured interface $INTERFACE: $?"
+              logger -t ec2net "[ec2dhcp] Configured interface $INTERFACE: $?"
             else
-              logger --tag ec2net "[ec2dhcp] No action for interface $INTERFACE on reason $reason"
+              logger -t ec2net "[ec2dhcp] No action for interface $INTERFACE on reason $reason"
             fi
           EOH
-          expect(chef_run).to_not render_file(f).with_content(c)
+          expect(chef_run).to_not render_file(ec2dhcp_script_path).with_content(c)
         end
 
         it 'adds workarounds for a lack of hotplug support if appropriate' do

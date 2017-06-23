@@ -64,7 +64,7 @@ class Chef
         # Debian network configs go in interfaces.d.
         #
         def dev_config_path
-          '#{dev_config_dir}/${INTERFACE}.cfg'
+          "#{dev_config_dir}/${INTERFACE}.cfg"
         end
 
         #
@@ -99,14 +99,7 @@ class Chef
         # On Debian systems, DHCP helper scripts must *not* end in .sh.
         #
         def ec2dhcp_script_path
-          ::File.join(dhclient_scripts_dir, 'ec2dhcp')
-        end
-
-        #
-        # Debian's dhclient doesn't support dhclient.d.
-        #
-        def dhclient_scripts_dir
-          '/etc/dhcp/dhclient-exit-hooks.d'
+          '/etc/dhcp/dhclient-exit-hooks.d/ec2dhcp'
         end
 
         #

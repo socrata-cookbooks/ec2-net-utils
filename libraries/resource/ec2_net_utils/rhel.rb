@@ -102,14 +102,7 @@ class Chef
         # On RHEL systems, DHCP helper scripts must end in .sh.
         #
         def ec2dhcp_script_path
-          ::File.join(dhclient_scripts_dir, 'ec2dhcp.sh')
-        end
-
-        #
-        # RHEL's dhclient supports scripts in dhclient.d.
-        #
-        def dhclient_scripts_dir
-          '/etc/dhcp/dhclient.d'
+          '/etc/dhcp/dhclient.d/ec2dhcp.sh'
         end
 
         #

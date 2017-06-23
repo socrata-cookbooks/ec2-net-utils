@@ -38,7 +38,7 @@ class Chef
         package 'curl'
         # TODO: Will this harm anything if the driver isn't installed?
         cookbook_file '/etc/modprobe.d/ixgbevf.conf'
-        %w(rule_generator.functions write_net_rules).each do |f|
+        %w[rule_generator.functions write_net_rules].each do |f|
           cookbook_file ::File.join('/lib/udev', f) do
             cookbook 'ec2-net-utils'
             mode '0755'
@@ -74,7 +74,8 @@ class Chef
           source 'ec2dhcp.sh.erb'
           mode '0755'
           variables(network_scripts_dir: network_scripts_dir,
-                    dhclient_scripts_dir: dhclient_scripts_dir)
+                    exit_hooks: ::File.dirname(ec2dhcp_script_path)
+                                      .end_with?('/dhclient-exit-hooks.d'))
         end
 
         # TODO: /etc/init/elastic-network-interfaces.conf

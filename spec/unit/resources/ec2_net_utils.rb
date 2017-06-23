@@ -106,13 +106,13 @@ shared_context 'resources::ec2_net_utils' do
             .with_content(r)
         end
 
-        it 'creates the ec2dhcp.sh file' do
-          f = "#{dhclient_scripts_dir}/ec2dhcp.sh"
-          expect(chef_run).to create_template(f).with(mode: '0755')
+        it 'creates the ec2dhcp file' do
+          expect(chef_run).to create_template(ec2dhcp_script_path)
+            .with(mode: '0755')
         end
 
         it 'renders the expected ec2dhcp.sh file' do
-          f = "#{dhclient_scripts_dir}/ec2dhcp.sh"
+          f = ec2dhcp_script_path
           r = %r{^\. #{Regexp.escape(network_scripts_dir)}/ec2net-functions$}
           expect(chef_run).to render_file(f).with_content(r)
         end
