@@ -57,7 +57,8 @@ shared_context 'resources::ec2_net_utils::rhel' do
               logger -t ec2net "[ec2dhcp] No action for interface $INTERFACE on reason $reason"
             fi
           EOH
-          expect(chef_run).to_not render_file(ec2dhcp_script_path).with_content(c)
+          expect(chef_run).to_not render_file(ec2dhcp_script_path)
+            .with_content(c)
         end
 
         it 'adds workarounds for a lack of hotplug support if appropriate' do

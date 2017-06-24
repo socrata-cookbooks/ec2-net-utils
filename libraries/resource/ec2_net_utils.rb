@@ -33,7 +33,7 @@ class Chef
       #
       # Drop off the files in the correct locations.
       #
-      action :install do
+      action :install do # rubocop:disable Metrics/BlockLength
         package 'udev'
         package 'curl'
         # TODO: Will this harm anything if the driver isn't installed?
