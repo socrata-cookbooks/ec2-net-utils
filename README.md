@@ -59,6 +59,7 @@ Actions:
 | Action     | Description             |
 |------------|-------------------------|
 | `:install` | Install all the scripts |
+| `:remove`  | Delete all the scripts  |
 
 Properties:
 

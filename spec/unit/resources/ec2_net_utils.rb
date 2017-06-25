@@ -14,9 +14,9 @@ shared_context 'resources::ec2_net_utils' do
   shared_context 'the :install action' do
   end
 
-  # shared_context 'the :remove action' do
-  #   let(:action) { :remove }
-  # end
+  shared_context 'the :remove action' do
+    let(:action) { :remove }
+  end
 
   shared_context 'all default properties' do
   end
@@ -106,6 +106,13 @@ shared_context 'resources::ec2_net_utils' do
             .with_content(r)
         end
 
+        %w[ec2ifdown ec2ifscan ec2ifup].each do |f|
+          it "creates the #{f} man page file" do
+            f = "/usr/share/man/man8/#{f}.8.gz"
+            expect(chef_run).to create_cookbook_file(f)
+          end
+        end
+
         it 'creates the ec2dhcp file' do
           expect(chef_run).to create_template(ec2dhcp_script_path)
             .with(mode: '0755')
@@ -145,12 +152,63 @@ shared_context 'resources::ec2_net_utils' do
           r = %r{^\. #{Regexp.escape(network_scripts_dir)}\/ec2net-functions$}
           expect(chef_run).to render_file(f).with_content(r)
         end
+      end
+    end
+
+    context 'the :remove action' do
+      include_context description
+
+      context 'all default properties' do
+        include_context description
+
+        it 'removes a ec2_net_utils resource' do
+          expect(chef_run).to remove_ec2_net_utils(name)
+        end
+
+        it 'deletes the ec2net.hotplug file' do
+          f = "#{network_scripts_dir}/ec2net.hotplug"
+          expect(chef_run).to delete_file(f)
+        end
+
+        it 'deletes the persistent net generator udev rules file' do
+          f = '/etc/udev/rules.d/75-persistent-net-generator.rules'
+          expect(chef_run).to delete_file(f)
+        end
+
+        it 'deletes the ENI udev rules file' do
+          f = '/etc/udev/rules.d/53-ec2-network-interfaces.rules'
+          expect(chef_run).to delete_file(f)
+        end
+
+        it 'deletes the ec2dhcp file' do
+          expect(chef_run).to delete_file(ec2dhcp_script_path)
+        end
 
         %w[ec2ifdown ec2ifscan ec2ifup].each do |f|
-          it "creates the #{f} man page file" do
-            f = "/usr/share/man/man8/#{f}.8.gz"
-            expect(chef_run).to create_cookbook_file(f)
+          it "deletes the #{f} man page file" do
+            expect(chef_run).to delete_file("/usr/share/man/man8/#{f}.8.gz")
           end
+
+          it "deletes the #{f} file" do
+            expect(chef_run).to delete_file("/sbin/#{f}")
+          end
+        end
+
+        it 'deletes the ec2net-functions file' do
+          f = "#{network_scripts_dir}/ec2net-functions"
+          expect(chef_run).to delete_file(f)
+        end
+
+        it 'deletes the write_net_rules file' do
+          expect(chef_run).to delete_file('/lib/udev/write_net_rules')
+        end
+
+        it 'deletes the rule_generator.functions file' do
+          expect(chef_run).to delete_file('/lib/udev/rule_generator.functions')
+        end
+
+        it 'deletes the ixgbevf modprobe config' do
+          expect(chef_run).to delete_file('/etc/modprobe.d/ixgbevf.conf')
         end
       end
     end
