@@ -7,34 +7,34 @@ require_relative 'ec2_net_utils_helpers/instance'
 require_relative 'ec2_net_utils_helpers/interface'
 
 class EC2NetUtilsHelpers
-  class << self
-    attr_reader :inspec
+  attr_reader :inspec, :interface
 
-    #
-    # Configure our child helper classes.
-    #
-    # @param params [Hash] a params hash
-    #
-    def configure!(params)
-      ::EC2NetUtilsHelpers::Inspec.configure!(params)
-    end
+  #
+  # Configure our child helper classes.
+  #
+  # @param params [Hash] a params hash
+  #
+  def initialize(params)
+    @inspec = ::EC2NetUtilsHelpers::Inspec.new(params)
+    @instance = ::EC2NetUtilsHelpers::Instance.new(inspec: @inspec)
+    @interface = ::EC2NetUtilsHelpers::Interface.new(instance: @instance)
+  end
 
-    #
-    # Set up the secondary interface on the test instance.
-    #
-    def set_up!
-      ::EC2NetUtilsHelpers::Interface.create!
-      ::EC2NetUtilsHelpers::Interface.attach!
-      ::EC2NetUtilsHelpers::Interface.ifup!
-    end
+  #
+  # Set up the secondary interface on the test instance.
+  #
+  def set_up!
+    interface.create!
+    interface.attach!
+    interface.ifup!
+  end
 
-    #
-    # Bring down, detach, and delete the secondary interface.
-    #
-    def tear_down!
-      ::EC2NetUtilsHelpers::Interface.ifdown!
-      ::EC2NetUtilsHelpers::Interface.detach!
-      ::EC2NetUtilsHelpers::Interface.destroy!
-    end
+  #
+  # Bring down, detach, and delete the secondary interface.
+  #
+  def tear_down!
+    interface.ifdown!
+    interface.detach!
+    interface.destroy!
   end
 end

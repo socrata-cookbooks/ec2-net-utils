@@ -11,8 +11,8 @@ require_relative 'ec2_net_utils_helpers'
 #
 RSpec.configure do |c|
   c.before do
-    EC2NetUtilsHelpers.configure!(inspec: inspec)
-    EC2NetUtilsHelpers.set_up!
+    @helpers = EC2NetUtilsHelpers.new(inspec: inspec)
+    @helpers.set_up!
   end
 end
 
@@ -23,7 +23,7 @@ end
 #
 at_exit do
   if defined?(inspec)
-    EC2NetUtilsHelpers.configure!(inspec: inspec)
-    EC2NetUtilsHelpers.tear_down!
+    @helpers = EC2NetUtilsHelpers.new(inspec: inspec)
+    @helpers.tear_down!
   end
 end
