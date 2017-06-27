@@ -35,7 +35,6 @@ class EC2NetUtilsHelpers
           sleep(3)
         end
       end
-      sleep(5)
       puts 'OK'
     end
 
@@ -58,7 +57,8 @@ class EC2NetUtilsHelpers
     # @return [TrueClass,FalseClass] whether the interface is up
     #
     def up?(nic)
-      inspec.command("ethtool #{nic}").exit_status.zero?
+      inspec.command("ethtool #{nic}").exit_status.zero? && \
+        inspec.command("ip a | grep 'scope global #{nic}$'").exit_status.zero?
     end
 
     #
