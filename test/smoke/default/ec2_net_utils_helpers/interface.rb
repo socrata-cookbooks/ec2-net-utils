@@ -16,11 +16,31 @@ class EC2NetUtilsHelpers
     end
 
     #
+    # In an idempotent fashion, create the ENI, attach it to instance, and
+    # bring it up.
+    #
+    def set_up!
+      create! unless created?
+      attach! unless attached?
+      ifup! unless up?
+    end
+
+    #
+    # In an idempotent fashion, bring down the ENI, detach it from the
+    # instance, and delete it.
+    #
+    def tear_down!
+      return unless created?
+
+      ifdown! if up?
+      detach! if attached?
+      destroy!
+    end
+
+    #
     # Create and tag the secondary interface unless it already exists.
     #
     def create!
-      return if created?
-
       EC2.clone_interface!(instance.eth0, description)
       tag!
       puts "Created secondary ENI (#{interface.id})"
@@ -38,14 +58,11 @@ class EC2NetUtilsHelpers
     # Destroy the secondary interface if it exists.
     #
     def destroy!
-      return unless created?
-
       print "Deleting ENI (#{interface.id})..."
       interface.delete
       # There is ~a second or so where the API can still find the ENI even
       # though it's "deleted".
       sleep(3)
-      @interface = nil
       puts 'OK'
     end
 
@@ -54,8 +71,6 @@ class EC2NetUtilsHelpers
     # wait for its status to switch to "in-use".
     #
     def attach!
-      return if attached?
-
       interface.attach(instance_id: instance.id, device_index: 1)
       print "Waiting for ENI (#{interface.id}) to attach..."
       interface.wait_until(max_attempts: 10,
@@ -71,8 +86,6 @@ class EC2NetUtilsHelpers
     # its status to switch to "available".
     #
     def detach!
-      return unless attached?
-
       interface.detach
       print "Waiting for ENI (#{interface.id}) to detach..."
       interface.wait_until(max_attempts: 40,
@@ -120,6 +133,15 @@ class EC2NetUtilsHelpers
     #
     def attached?
       interface.status == 'in-use'
+    end
+
+    #
+    # Check whether the interface is up on the instane.
+    #
+    # @return [TrueClass,FalseClass] whether eth1 is up
+    #
+    def up?
+      instance.up?('eth1')
     end
 
     private

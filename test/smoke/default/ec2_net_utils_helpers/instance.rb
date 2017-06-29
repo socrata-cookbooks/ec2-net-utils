@@ -26,8 +26,6 @@ class EC2NetUtilsHelpers
     # @param nic [String] the eth* name of the interface to bring up
     #
     def ifup!(nic)
-      return if up?(nic)
-
       print 'Waiting for instance to bring up ENI as eth1...'
       Timeout.timeout(20) do
         Kernel.loop do
@@ -45,7 +43,9 @@ class EC2NetUtilsHelpers
     # @param nic [String] the eth* name of the interface to bring down
     #
     def ifdown!(nic)
+      print 'Bringing down ENI on the instance...'
       inspec.command("ifdown #{nic}").stdout if up?(nic)
+      puts 'OK'
     end
 
     #
@@ -57,6 +57,7 @@ class EC2NetUtilsHelpers
     # @return [TrueClass,FalseClass] whether the interface is up
     #
     def up?(nic)
+      return false if instance.nil? || instance.state.name != 'running'
       inspec.command("ethtool #{nic}").exit_status.zero? && \
         inspec.command("ip a | grep 'scope global.*#{nic}$'").exit_status.zero?
     end
@@ -96,7 +97,7 @@ class EC2NetUtilsHelpers
     # @return [Aws::EC2::Instance] the EC2 instance under test
     #
     def instance
-      @instance ||= EC2.find_instance(id)
+      EC2.find_instance(id)
     end
   end
 end

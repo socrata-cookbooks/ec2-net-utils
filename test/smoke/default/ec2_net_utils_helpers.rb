@@ -9,6 +9,24 @@ require_relative 'ec2_net_utils_helpers/interface'
 class EC2NetUtilsHelpers
   attr_reader :inspec, :interface
 
+  class << self
+    #
+    # Iterate over every object in the instances index and tear it down.
+    #
+    def tear_down!
+      instances.each { |i| i.tear_down! }
+    end
+
+    #
+    # Keep a class-level array for indexing all test instances.
+    #
+    # @return [Array<EC2NetUtilsHelpers>] an array of helper objects
+    #
+    def instances
+      @instances ||= []
+    end
+  end
+
   #
   # Configure our child helper classes.
   #
@@ -24,17 +42,13 @@ class EC2NetUtilsHelpers
   # Set up the secondary interface on the test instance.
   #
   def set_up!
-    interface.create!
-    interface.attach!
-    interface.ifup!
+    interface.set_up!
   end
 
   #
   # Bring down, detach, and delete the secondary interface.
   #
   def tear_down!
-    interface.ifdown!
-    interface.detach!
-    interface.destroy!
+    interface.tear_down!
   end
 end
