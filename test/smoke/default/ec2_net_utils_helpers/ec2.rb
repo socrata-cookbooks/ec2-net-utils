@@ -15,11 +15,17 @@ class EC2NetUtilsHelpers
       # @param description [String] the new ENI's description
       #
       def clone_interface!(source_nic, description)
-        client.create_network_interface(
+        nic_id = client.create_network_interface(
           description: description,
           groups: source_nic.groups.map(&:group_id),
           subnet_id: source_nic.subnet_id
-        )
+        ).network_interface.network_interface_id
+        return unless source_nic.private_ip_addresses[0].association
+
+        eip_id = client.allocate_address(domain: 'vpc').allocation_id
+
+        client.associate_address(allocation_id: eip_id,
+                                 network_interface_id: nic_id)
       end
 
       #
@@ -52,6 +58,26 @@ class EC2NetUtilsHelpers
         raise('Something went wildly wrong') unless nics.length == 1
         Aws::EC2::NetworkInterface.new(nics[0].network_interface_id,
                                        client: client)
+      end
+
+      #
+      # Find an EIP based on the ID of the interface it's associated with.
+      #
+      # @param id [String] the interface ID
+      #
+      # @return [Aws::EC2::VpcAddress,NilClass] the address object or nil
+      #
+      # @raise [RuntimeError] if >1 addresses match that ID
+      #
+      def find_eip(id)
+        addresses = client.describe_addresses(
+          filters: [{ name: 'network-interface-id', values: [id] }]
+        ).addresses
+
+        return if addresses.empty?
+        raise('Something went wildly wrong') unless addresses.length == 1
+
+        Aws::EC2::VpcAddress.new(addresses[0].allocation_id, client: client)
       end
 
       private

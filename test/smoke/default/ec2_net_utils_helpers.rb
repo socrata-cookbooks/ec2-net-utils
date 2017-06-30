@@ -14,7 +14,7 @@ class EC2NetUtilsHelpers
     # Iterate over every object in the instances index and tear it down.
     #
     def tear_down!
-      instances.each { |i| i.tear_down! }
+      instances.each(&:tear_down!)
     end
 
     #

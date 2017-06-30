@@ -23,7 +23,5 @@ end
 # put it here to ensure it only runs once.
 #
 at_exit do
-  if defined?(inspec)
-    EC2NetUtilsHelpers.tear_down!
-  end
+  EC2NetUtilsHelpers.tear_down! if defined?(inspec)
 end

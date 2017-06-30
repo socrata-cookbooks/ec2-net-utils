@@ -58,11 +58,23 @@ class EC2NetUtilsHelpers
     # Destroy the secondary interface if it exists.
     #
     def destroy!
+      release_eip! if eip?
       print "Deleting ENI (#{interface.id})..."
       interface.delete
       # There is ~a second or so where the API can still find the ENI even
       # though it's "deleted".
       sleep(3)
+      puts 'OK'
+    end
+
+    #
+    # Release the EIP associated with the secondary ENI.
+    #
+    def release_eip!
+      e = eip
+      print "Releasing EIP (#{e.allocation_id})..."
+      interface.association.delete
+      e.release
       puts 'OK'
     end
 
@@ -136,6 +148,15 @@ class EC2NetUtilsHelpers
     end
 
     #
+    # Check whether the interface has an EIP associated with it.
+    #
+    # @return [TrueClass, FalseClass]
+    #
+    def eip?
+      !eip.nil?
+    end
+
+    #
     # Check whether the interface is up on the instane.
     #
     # @return [TrueClass,FalseClass] whether eth1 is up
@@ -145,6 +166,16 @@ class EC2NetUtilsHelpers
     end
 
     private
+
+    #
+    # Fetch and return the EIP associated with the secondary interface or nil
+    # if it doesn't exist.
+    #
+    # @return [Aws::EC2::VpcAddress,NilClass] the EIP of the secondary NIC
+    #
+    def eip
+      EC2.find_eip(interface.id)
+    end
 
     #
     # Fetch and return the secondary interface or nil if it doesn't exist.
