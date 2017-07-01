@@ -34,8 +34,7 @@ class Chef
       # Drop off the files in the correct locations.
       #
       action :install do # rubocop:disable Metrics/BlockLength
-        package 'udev'
-        package 'curl'
+        %w(udev curl).each { |p| package p }
         # TODO: Will this harm anything if the driver isn't installed?
         cookbook_file '/etc/modprobe.d/ixgbevf.conf'
         %w[rule_generator.functions write_net_rules].each do |f|

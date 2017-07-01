@@ -42,6 +42,13 @@ shared_context 'resources::ec2_net_utils::debian' do
       context 'all default properties' do
         include_context description
 
+        it 'ensures APT is up to date if a package is to be installed' do
+          r = chef_run.apt_update('ec2-net-utils')
+          expect(r).to do_nothing
+          expect(r).to subscribe_to('package[udev]').on(:periodic).before
+          expect(r).to subscribe_to('package[curl]').on(:periodic).before
+        end
+
         it 'adds Debian hooks into the ec2dhcp file' do
           c = <<-EOH.gsub(/^ {12}/, '').strip
             # Platforms that support dhclient.d scripts will call the above methods on

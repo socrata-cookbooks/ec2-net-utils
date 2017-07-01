@@ -33,6 +33,19 @@ class Chef
         provides :ec2_net_utils, platform_family: 'debian'
 
         #
+        # Ensure the APT cache is up to date if we'll be installing udev or
+        # curl.
+        #
+        action :install do
+          apt_update 'ec2-net-utils' do
+            action :nothing
+            subscribes :periodic, 'package[udev]', :before
+            subscribes :periodic, 'package[curl]', :before
+          end
+          super()
+        end
+
+        #
         # Debian systems support network device hotplugging.
         #
         def hotplug_support
