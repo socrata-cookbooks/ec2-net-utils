@@ -20,10 +20,16 @@ class EC2NetUtilsHelpers
           groups: source_nic.groups.map(&:group_id),
           subnet_id: source_nic.subnet_id
         ).network_interface.network_interface_id
-        return unless source_nic.private_ip_addresses[0].association
+        add_eip!(nic_id) unless source_nic.private_ip_addresses[0].association
+      end
 
+      #
+      # Allocate an EIP and assign it to the given ENI.
+      #
+      # @param nic_id [String] The ENI resource ID
+      #
+      def add_eip!(nic_id)
         eip_id = client.allocate_address(domain: 'vpc').allocation_id
-
         client.associate_address(allocation_id: eip_id,
                                  network_interface_id: nic_id)
       end
