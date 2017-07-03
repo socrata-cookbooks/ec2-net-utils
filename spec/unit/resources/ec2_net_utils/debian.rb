@@ -32,6 +32,7 @@ shared_context 'resources::ec2_net_utils::debian' do
   end
   let(:ec2dhcp_script_path) { '/etc/dhcp/dhclient-exit-hooks.d/ec2dhcp' }
   let(:ec2ifscan_dev_path) { '/etc/network/interfaces.d/${dev##*/}.cfg' }
+  let(:hotplug_support) { true }
 
   shared_examples_for 'any Debian platform' do
     it_behaves_like 'any platform'
@@ -64,20 +65,6 @@ shared_context 'resources::ec2_net_utils::debian' do
             fi
           EOH
           expect(chef_run).to render_file(ec2dhcp_script_path).with_content(c)
-        end
-
-        it 'does not add workarounds for a lack of hotplug support' do
-          f = '/etc/udev/rules.d/53-ec2-network-interfaces.rules'
-          [
-            Regexp.new('^ACTION=="add", SUBSYSTEM=="net", ' \
-                       'KERNEL=="eth\\*", ' \
-                       'RUN\\+="/sbin/ec2ifup \\$env{INTERFACE}"$'),
-            Regexp.new('^ACTION=="remove", SUBSYSTEM=="net", ' \
-                       'KERNEL=="eth\\*", ' \
-                       'RUN\\+="/sbin/ec2ifdown \\$env{INTERFACE}"$')
-          ].each do |r|
-            expect(chef_run).to_not render_file(f).with_content(r)
-          end
         end
       end
     end

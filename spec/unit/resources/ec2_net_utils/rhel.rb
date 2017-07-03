@@ -60,24 +60,6 @@ shared_context 'resources::ec2_net_utils::rhel' do
           expect(chef_run).to_not render_file(ec2dhcp_script_path)
             .with_content(c)
         end
-
-        it 'adds workarounds for a lack of hotplug support if appropriate' do
-          f = '/etc/udev/rules.d/53-ec2-network-interfaces.rules'
-          [
-            Regexp.new('^ACTION=="add", SUBSYSTEM=="net", ' \
-                       'KERNEL=="eth\\*", ' \
-                       'RUN\\+="/sbin/ec2ifup \\$env{INTERFACE}"$'),
-            Regexp.new('^ACTION=="remove", SUBSYSTEM=="net", ' \
-                       'KERNEL=="eth\\*", ' \
-                       'RUN\\+="/sbin/ec2ifdown \\$env{INTERFACE}"$')
-          ].each do |r|
-            if platform_version.to_i >= 7
-              expect(chef_run).to render_file(f).with_content(r)
-            else
-              expect(chef_run).to_not render_file(f).with_content(r)
-            end
-          end
-        end
       end
     end
   end

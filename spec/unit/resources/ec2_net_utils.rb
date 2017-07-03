@@ -137,6 +137,24 @@ shared_context 'resources::ec2_net_utils' do
           expect(chef_run).to render_file(f).with_content(r)
         end
 
+        it 'adds workaround rules for lack of hotplug support if needed' do
+          f = '/etc/udev/rules.d/53-ec2-network-interfaces.rules'
+          [
+            Regexp.new('^ACTION=="add", SUBSYSTEM=="net", ' \
+                       'KERNEL=="eth\\*", ' \
+                       'RUN\\+="/sbin/ec2ifup \\$env{INTERFACE}"$'),
+            Regexp.new('^ACTION=="remove", SUBSYSTEM=="net", ' \
+                       'KERNEL=="eth\\*", ' \
+                       'RUN\\+="/sbin/ec2ifdown \\$env{INTERFACE}"$')
+          ].each do |r|
+            if hotplug_support
+              expect(chef_run).to_not render_file(f).with_content(r)
+            else
+              expect(chef_run).to render_file(f).with_content(r)
+            end
+          end
+        end
+
         it 'creates the persistent net generator udev rules file' do
           f = '/etc/udev/rules.d/75-persistent-net-generator.rules'
           expect(chef_run).to create_cookbook_file(f)

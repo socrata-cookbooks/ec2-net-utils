@@ -8,5 +8,7 @@ describe 'resources::ec2_net_utils::redhat::6_9' do
 
   let(:platform_version) { '6.9' }
 
+  let(:hotplug_support) { true }
+
   it_behaves_like 'any Red Hat platform'
 end

@@ -58,8 +58,7 @@ class EC2NetUtilsHelpers
     #
     def up?(nic)
       return false if instance.nil? || instance.state.name != 'running'
-      inspec.command("ethtool #{nic}").exit_status.zero? && \
-        inspec.command("ip a | grep 'scope global.*#{nic}$'").exit_status.zero?
+      inspec.command("ip a | grep 'scope global.*#{nic}$'").exit_status.zero?
     end
 
     #

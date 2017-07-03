@@ -8,5 +8,7 @@ describe 'resources::ec2_net_utils::centos::6_9' do
 
   let(:platform_version) { '6.9' }
 
+  let(:hotplug_support) { true }
+
   it_behaves_like 'any CentOS platform'
 end

@@ -8,5 +8,7 @@ describe 'resources::ec2_net_utils::centos::7_3_1611' do
 
   let(:platform_version) { '7.3.1611' }
 
+  let(:hotplug_support) { false }
+
   it_behaves_like 'any CentOS platform'
 end
