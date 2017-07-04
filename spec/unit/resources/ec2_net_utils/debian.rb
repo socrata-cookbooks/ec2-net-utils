@@ -50,6 +50,32 @@ shared_context 'resources::ec2_net_utils::debian' do
           expect(r).to subscribe_to('package[curl]').on(:periodic).before
         end
 
+        it 'writes a basic interfaces config' do
+          c = <<-EOH.gsub(/^ +/, '').strip
+            # This file is managed by Chef.
+            # Any changes to it will be overwritten.
+
+            auto lo
+            iface lo inet loopback
+
+            source /etc/network/interfaces.d/*.cfg
+          EOH
+          expect(chef_run).to create_file('/etc/network/interfaces')
+            .with(content: c)
+        end
+
+        it 'writes a config for eth0' do
+          c = <<-EOH.gsub(/^ +/, '').strip
+            # This file is managed by Chef.
+            # Any changes to it will be overwritten.
+
+            auto eth0
+            iface eth0 inet dhcp
+          EOH
+          expect(chef_run).to create_file('/etc/network/interfaces.d/eth0.cfg')
+            .with(content: c)
+        end
+
         it 'adds Debian hooks into the ec2dhcp file' do
           c = <<-EOH.gsub(/^ {12}/, '').strip
             # Platforms that support dhclient.d scripts will call the above methods on

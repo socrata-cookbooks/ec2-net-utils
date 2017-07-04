@@ -42,6 +42,26 @@ class Chef
             subscribes :periodic, 'package[udev]', :before
             subscribes :periodic, 'package[curl]', :before
           end
+          file '/etc/network/interfaces' do
+            content <<-EOH.gsub(/^ +/, '').strip
+              # This file is managed by Chef.
+              # Any changes to it will be overwritten.
+
+              auto lo
+              iface lo inet loopback
+
+              source /etc/network/interfaces.d/*.cfg
+            EOH
+          end
+          file '/etc/network/interfaces.d/eth0.cfg' do
+            content <<-EOH.gsub(/^ +/, '').strip
+              # This file is managed by Chef.
+              # Any changes to it will be overwritten.
+
+              auto eth0
+              iface eth0 inet dhcp
+            EOH
+          end
           super()
         end
 
