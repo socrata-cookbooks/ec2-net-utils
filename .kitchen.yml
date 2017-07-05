@@ -23,13 +23,13 @@ platforms:
 suites:
   - name: default
     run_list:
-      - recipe[ec2-net-utils]
+      - recipe[ec2-net-utils_test]
     verifier:
       inspec_tests:
         - test/smoke/default
   - name: chef-12
     run_list:
-      - recipe[ec2-net-utils]
+      - recipe[ec2-net-utils_test]
     verifier:
       inspec_tests:
         - test/smoke/default
