@@ -14,6 +14,7 @@ source_url 'https://github.com/socrata-cookbooks/ec2-net-utils'
 issues_url 'https://github.com/socrata-cookbooks/ec2-net-utils/issues'
 
 supports 'ubuntu', '>= 14.04'
+supports 'debian', '>= 8'
 supports 'redhat', '>= 6'
 supports 'centos', '>= 6'
 supports 'scientific', '>= 6'

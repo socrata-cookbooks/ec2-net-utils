@@ -20,7 +20,7 @@ class EC2NetUtilsHelpers
           groups: source_nic.groups.map(&:group_id),
           subnet_id: source_nic.subnet_id
         ).network_interface.network_interface_id
-        add_eip!(nic_id) unless source_nic.private_ip_addresses[0].association
+        add_eip!(nic_id) if source_nic.private_ip_addresses[0].association
       end
 
       #

@@ -13,6 +13,16 @@ EC2 Net Utils Cookbook
 A Chef cookbook for installing a multi-platform fork of Amazon Linux's
 ec2-net-utils package.
 
+The ec2-net-utils package for Amazon Linux handles the following when attaching
+additional network interfaces to instances:
+
+* Brings up new interfaces as they are attached via udev.
+* Configures all interfaces with DHCP, dynamically adding any non-eth0
+  interface.
+* Sets up ip rules, tables, and routes to fix the asymmetric routing problem.
+* Ensures DHCP requests are sent over broadcast to work around dhclient's
+  assymetric routing.
+
 The included files were vendored from the most recent version of ec2-net-utils
 as of 2017-06-01. They are patched to support Debian and RHEL platforms.
 
