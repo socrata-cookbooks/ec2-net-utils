@@ -1,6 +1,7 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'thread'
 require_relative 'ec2_net_utils_helpers/ec2'
 require_relative 'ec2_net_utils_helpers/inspec'
 require_relative 'ec2_net_utils_helpers/instance'
@@ -25,6 +26,16 @@ class EC2NetUtilsHelpers
     def instances
       @instances ||= []
     end
+
+    #
+    # Keep a class-level lock so interface constructions/destructions don't
+    # tread on each other.
+    #
+    # @return [Mutex] a class-level mutex
+    #
+    def mutex
+      @mutex ||= Mutex.new
+    end
   end
 
   #
@@ -42,13 +53,17 @@ class EC2NetUtilsHelpers
   # Set up the secondary interface on the test instance.
   #
   def set_up!
-    interface.set_up!
+    self.class.mutex.synchronize do
+      interface.set_up!
+    end
   end
 
   #
   # Bring down, detach, and delete the secondary interface.
   #
   def tear_down!
-    interface.tear_down!
+    self.class.mutex.synchronize do
+      interface.tear_down!
+    end
   end
 end
