@@ -83,11 +83,12 @@ class EC2NetUtilsHelpers
     # wait for its status to switch to "in-use".
     #
     def attach!
-      interface.attach(instance_id: instance.id, device_index: 1)
-      print "Waiting for ENI (#{interface.id}) to attach..."
-      interface.wait_until(max_attempts: 10,
-                           delay: 3,
-                           before_wait: proc { print('.') }) do |r|
+      i = interface
+      i.attach(instance_id: instance.id, device_index: 1)
+      print "Waiting for ENI (#{i.id}) to attach..."
+      i.wait_until(max_attempts: 6,
+                   delay: 5,
+                   before_wait: proc { print('.') }) do |r|
         r.status == 'in-use'
       end
       puts 'OK'
@@ -98,11 +99,12 @@ class EC2NetUtilsHelpers
     # its status to switch to "available".
     #
     def detach!
-      interface.detach
-      print "Waiting for ENI (#{interface.id}) to detach..."
-      interface.wait_until(max_attempts: 40,
-                           delay: 3,
-                           before_wait: proc { print('.') }) do |r|
+      i = interface
+      i.detach
+      print "Waiting for ENI (#{i.id}) to detach..."
+      i.wait_until(max_attempts: 24,
+                   delay: 5,
+                   before_wait: proc { print('.') }) do |r|
         r.status == 'available'
       end
       puts 'OK'

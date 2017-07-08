@@ -14,4 +14,4 @@ install:
   - chef exec bundle install --without=development integration
 
 script:
-  - chef exec bundle exec rake && chef exec bundle exec kitchen test -c
+  - chef exec bundle exec rake && chef exec bundle exec kitchen test -c 2
