@@ -84,7 +84,6 @@ class Chef
         end
 
         # TODO: /etc/init/elastic-network-interfaces.conf
-        # TODO: /etc/sysconfig/modules/acpiphp.modules
 
         template '/etc/udev/rules.d/53-ec2-network-interfaces.rules' do
           cookbook 'ec2-net-utils'
