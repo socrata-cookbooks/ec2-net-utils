@@ -1,21 +1,25 @@
 language: ruby
+dist: trusty
+sudo: required
 
 branches:
   only:
     - master
 
-sudo: required
-
-services:
-  - docker
-
 install:
   - curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -P chefdk
-  - chef exec bundle install --without=development integration
+  - chef exec bundle install --without=development
+
+before_script:
+  - echo $AWS_SSH_KEY | base64 -d > /tmp/kitchen_ssh_key
+
+env:
+  global:
+    - AWS_SSH_KEY_ID=test-kitchen
+    - AWS_SSH_KEY_FILE=/tmp/kitchen_ssh_key
+    - AWS_REGION=us-west-1
 
 script:
-  - set -e
-  - chef exec bundle exec rake
-  - chef exec bundle exec kitchen test default -c 2
-  - chef exec bundle exec kitchen test chef-12 -c 2
-  - set +e
+  - chef exec rake
+  - chef exec kitchen test default -a -c 3
+  - chef exec kitchen test chef-12 -a -c 3
