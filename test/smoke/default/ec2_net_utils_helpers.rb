@@ -8,23 +8,23 @@ require_relative 'ec2_net_utils_helpers/instance'
 require_relative 'ec2_net_utils_helpers/interface'
 
 class EC2NetUtilsHelpers
-  attr_reader :inspec, :interface
+  attr_reader :inspec, :instance, :interface
 
   class << self
     #
     # Iterate over every object in the instances index and tear it down.
     #
     def tear_down!
-      instances.each(&:tear_down!)
+      instances.shift[1].interface.tear_down! while !instances.empty?
     end
 
     #
-    # Keep a class-level array for indexing all test instances.
+    # Keep a class-level index of all current test instances.
     #
-    # @return [Array<EC2NetUtilsHelpers>] an array of helper objects
+    # @return [Hash] a hash of name => helper objects
     #
     def instances
-      @instances ||= []
+      @instances ||= {}
     end
 
     #
@@ -55,6 +55,7 @@ class EC2NetUtilsHelpers
   def set_up!
     self.class.mutex.synchronize do
       interface.set_up!
+      self.class.instances[instance.id] = self
     end
   end
 

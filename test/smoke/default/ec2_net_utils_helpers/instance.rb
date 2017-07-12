@@ -25,7 +25,7 @@ class EC2NetUtilsHelpers
     #
     # @param nic [String] the eth* name of the interface to bring up
     #
-    def ifup!(nic)
+    def wait_for_up!(nic)
       print 'Waiting for instance to bring up ENI as eth1...'
       Timeout.timeout(20) do
         Kernel.loop do
@@ -33,18 +33,6 @@ class EC2NetUtilsHelpers
           sleep(3)
         end
       end
-      puts 'OK'
-    end
-
-    #
-    # Use Inspec to bring down an interface on the instance if it's currently
-    # up.
-    #
-    # @param nic [String] the eth* name of the interface to bring down
-    #
-    def ifdown!(nic)
-      print 'Bringing down ENI on the instance...'
-      inspec.command("ifdown #{nic}").stdout if up?(nic)
       puts 'OK'
     end
 
@@ -69,7 +57,7 @@ class EC2NetUtilsHelpers
     # @return [Aws::EC2::NetworkInterface]
     #
     def eth0
-      instance.network_interfaces.find do |i|
+      @eth0 ||= instance.network_interfaces.find do |i|
         i.attachment.device_index.zero?
       end
     end
@@ -96,7 +84,7 @@ class EC2NetUtilsHelpers
     # @return [Aws::EC2::Instance] the EC2 instance under test
     #
     def instance
-      EC2.find_instance(id)
+      @instance ||= EC2.find_instance(id)
     end
   end
 end

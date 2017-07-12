@@ -13,7 +13,6 @@ RSpec.configure do |c|
   c.before do
     helper = EC2NetUtilsHelpers.new(inspec: inspec)
     helper.set_up!
-    EC2NetUtilsHelpers.instances << helper
   end
 end
 

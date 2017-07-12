@@ -22,7 +22,7 @@ class EC2NetUtilsHelpers
     def set_up!
       create! unless created?
       attach! unless attached?
-      ifup! unless up?
+      wait_for_up! unless up?
     end
 
     #
@@ -32,7 +32,6 @@ class EC2NetUtilsHelpers
     def tear_down!
       return unless created?
 
-      ifdown! if up?
       detach! if attached?
       destroy!
     end
@@ -64,6 +63,7 @@ class EC2NetUtilsHelpers
       # There is ~a second or so where the API can still find the ENI even
       # though it's "deleted".
       sleep(3)
+      @interface = nil
       puts 'OK'
     end
 
@@ -76,6 +76,7 @@ class EC2NetUtilsHelpers
       interface.association.delete
       e.release
       puts 'OK'
+      @eip = nil
     end
 
     #
@@ -102,12 +103,13 @@ class EC2NetUtilsHelpers
       i = interface
       i.detach
       print "Waiting for ENI (#{i.id}) to detach..."
-      i.wait_until(max_attempts: 24,
-                   delay: 5,
+      i.wait_until(max_attempts: 12,
+                   delay: 10,
                    before_wait: proc { print('.') }) do |r|
         r.status == 'available'
       end
       puts 'OK'
+      @interface = nil
     end
 
     #
@@ -118,16 +120,8 @@ class EC2NetUtilsHelpers
     # It takes several seconds after the ENI is attached before the instance
     # recognizes it and brings it up.
     #
-    def ifup!
-      instance.ifup!('eth1')
-    end
-
-    #
-    # Use Inspec to bring down the secondary interface on the instance if
-    # it's currently up.
-    #
-    def ifdown!
-      instance.ifdown!('eth1')
+    def wait_for_up!
+      instance.wait_for_up!('eth1')
     end
 
     #
@@ -176,7 +170,7 @@ class EC2NetUtilsHelpers
     # @return [Aws::EC2::VpcAddress,NilClass] the EIP of the secondary NIC
     #
     def eip
-      EC2.find_eip(interface.id)
+      @eip ||= EC2.find_eip(interface.id)
     end
 
     #
@@ -185,7 +179,7 @@ class EC2NetUtilsHelpers
     # @return [Aws::EC2::NetworkInterface,NilClass] the secondary interface
     #
     def interface
-      EC2.find_interface(description)
+      @interface ||= EC2.find_interface(description)
     end
 
     #
@@ -193,7 +187,7 @@ class EC2NetUtilsHelpers
     # easily in the EC2 API.
     #
     def name
-      "ec2-net-utils-kitchen-#{instance.id}-eth1"
+      @name ||= "ec2-net-utils-kitchen-#{instance.id}-eth1"
     end
 
     #
@@ -201,7 +195,8 @@ class EC2NetUtilsHelpers
     # find it easily in the EC2 API.
     #
     def description
-      "Test Kitchen ec2-net-utils secondary ENI for #{instance.id}"
+      @description ||= 'Test Kitchen ec2-net-utils secondary ENI ' \
+                       "for #{instance.id}"
     end
   end
 end
